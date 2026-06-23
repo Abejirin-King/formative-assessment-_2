@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "885688384894",
+    "project_id": "sparklink-alu",
+    "storage_bucket": "sparklink-alu.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885688384894:android:9991e624561c8845db072f",
+        "android_client_info": {
+          "package_name": "com.example.sparklink"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTfbjDrOi5W3-xJNk35yhDardVqcWcZGg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

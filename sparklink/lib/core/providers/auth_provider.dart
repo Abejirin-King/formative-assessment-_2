@@ -14,10 +14,20 @@ final currentUserProvider = StreamProvider<AppUser?>((ref) {
     if (firebaseUser == null) return null;
 
     final doc = await firestore.collection('users').doc(firebaseUser.uid).get();
+
     if (doc.exists) {
       return AppUser.fromMap(doc.data()!);
+    } else {
+      // Auto-create user document if it doesn't exist
+      final newUser = AppUser(
+        uid: firebaseUser.uid,
+        email: firebaseUser.email ?? '',
+        name: firebaseUser.displayName ?? "Student",
+        role: 'student',
+      );
+      await firestore.collection('users').doc(firebaseUser.uid).set(newUser.toMap());
+      return newUser;
     }
-    return null;
   });
 });
 
@@ -55,9 +65,9 @@ class AuthRepository {
 
   Future<void> signIn(String email, String password) async {
     await ref.read(authProvider).signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
+      email: email,
+      password: password,
+    );
   }
 
   Future<void> signOut() async {

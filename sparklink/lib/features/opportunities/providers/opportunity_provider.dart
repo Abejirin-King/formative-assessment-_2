@@ -16,13 +16,17 @@ final opportunitiesProvider = StreamProvider<List<Opportunity>>((ref) {
 
 final myApplicationsProvider = StreamProvider<List<dynamic>>((ref) {
   final firestore = ref.watch(firestoreProvider);
-  final user = ref.watch(currentUserProvider);
+  final userAsync = ref.watch(currentUserProvider);
 
-  if (user.valueOrNull?.uid == null) return const Stream.empty();
+  final user = userAsync.valueOrNull;
+  if (user == null || user.uid.isEmpty) {
+    return const Stream.empty();
+  }
 
   return firestore
       .collection('applications')
-      .where('applicantUid', isEqualTo: user.valueOrNull!.uid)
+      .where('applicantUid', isEqualTo: user.uid)
+      .orderBy('timestamp', descending: true)
       .snapshots()
       .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
 });
@@ -36,23 +40,31 @@ class OpportunityRepository {
   OpportunityRepository(this.ref);
 
   Future<void> postOpportunity(Opportunity opportunity) async {
-    final firestore = ref.read(firestoreProvider);
-    await firestore.collection('opportunities').add(opportunity.toMap());
+    try {
+      final firestore = ref.read(firestoreProvider);
+      await firestore.collection('opportunities').add(opportunity.toMap());
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<void> applyToOpportunity(String opportunityId, String coverLetter) async {
-    final firestore = ref.read(firestoreProvider);
-    final user = ref.read(currentUserProvider).valueOrNull;
+    try {
+      final firestore = ref.read(firestoreProvider);
+      final user = ref.read(currentUserProvider).valueOrNull;
 
-    if (user == null) throw Exception("Not logged in");
+      if (user == null) throw Exception("Not logged in");
 
-    await firestore.collection('applications').add({
-      'opportunityId': opportunityId,
-      'applicantUid': user.uid,
-      'applicantName': user.name,
-      'coverLetter': coverLetter,
-      'status': 'Applied',
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+      await firestore.collection('applications').add({
+        'opportunityId': opportunityId,
+        'applicantUid': user.uid,
+        'applicantName': user.name,
+        'coverLetter': coverLetter,
+        'status': 'Applied',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      rethrow;
+    }
   }
 }
